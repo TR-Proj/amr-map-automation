@@ -28,37 +28,47 @@ simple.dxf ──dxf_to_usd.py──▶ output/simple.usda (벽 + 웨이포인�
 
 ## 요구 사항
 
-- NVIDIA Isaac Sim 4.5 이상 (`isaacsim.*` 모듈 사용)
+- NVIDIA Isaac Sim 4.5 (Windows에서 확인)
 - Isaac Sim 내장 Python에 `ezdxf` 설치
 
-```bash
-# Isaac Sim 설치 폴더에서 (Windows: python.bat, Linux: python.sh)
-./python.bat -m pip install -r <이 저장소>/requirements.txt
+```powershell
+# Isaac Sim 설치 폴더에서 (Windows PowerShell)
+cd C:\IsaacSim
+.\python.bat -m pip install -r <저장소>\requirements.txt
 ```
+
+Linux는 `python.bat` 대신 `./python.sh`를 씁니다. PowerShell에서는 현재 폴더의 실행 파일 앞에 `.\`를 붙여야 합니다 (`python.bat`만 쓰면 "인식되지 않습니다" 오류).
 
 DWG 도면을 쓰려면 ODA File Converter가 추가로 필요합니다(ezdxf `odafc` 애드온). 가능하면 DXF로 저장해서 쓰세요.
 
 ## 사용법
 
-아래 명령은 모두 Isaac Sim 설치 폴더에서 실행합니다. 상대 경로 인자는 현재 폴더가 아니라 **스크립트가 있는 폴더 기준**으로 해석됩니다.
+아래 명령은 모두 Isaac Sim 설치 폴더에서 실행합니다. `<저장소>`는 이 저장소를 clone한 폴더의 전체 경로입니다. `--dxf`, `--robot` 같은 상대 경로 인자는 현재 폴더가 아니라 **스크립트가 있는 폴더 기준**으로 해석됩니다.
+
+| 스크립트 | 하는 일 | 주요 옵션 |
+| --- | --- | --- |
+| `dxf_to_usd.py` | 도면 → 가상 공장 생성, Isaac Sim 실행, 주행·스캔 | `--dxf`, `--robot`, `--layers` … |
+| `scan_to_map2.py` | 저장된 스캔 로그 → map2 (Isaac Sim을 띄우지 않음) | `--scan`, `--usd`, `--out`, `--report` |
+
+두 스크립트의 옵션은 서로 다릅니다. `scan_to_map2.py`에 `--dxf`를 주면 오류가 납니다.
 
 ### 1. 도면 → 가상 환경 → 주행·스캔
 
-```bash
-./python.bat <저장소>/dxf_to_usd.py --dxf simple.dxf --robot mobile.usd
+```powershell
+.\python.bat <저장소>\dxf_to_usd.py --dxf simple.dxf --robot mobile.usd
 ```
 
 1. 도면에서 벽 선분을 추출해 `output/simple.usda`를 만듭니다 (이중선 벽은 중심선으로 합침).
-2. `mobile.usd`를 복사해 맵을 붙인 `output/simple_scene.usd`를 만들고, 로봇을 시작 웨이포인트에 놓습니다.
+2. `mobile.usd`를 복사해 맵을 붙인 `output/simple_scene.usd`를 만들고, 로봇을 시작 웨이포인트에 놓습니다. 맵은 항상 도면 좌표 그대로 배치되므로(로봇 씬에 남은 이동값은 제거), 만들어지는 map2도 도면 좌표계입니다.
 3. Isaac Sim이 열리고 시뮬레이션이 자동으로 시작됩니다. AMR이 웨이포인트를 따라 주행하며 다음 파일을 500 프레임마다 저장합니다.
    - `output/scan_log.npz`: 스캔별 로봇 pose + LiDAR 점 (map2 변환 입력)
    - `output/amr_route.ply`: 주행 궤적 (CloudCompare 등으로 확인)
 
 도면 레이어를 모르면 먼저 확인하세요.
 
-```bash
-./python.bat <저장소>/dxf_to_usd.py --dxf my_factory.dxf --stats
-./python.bat <저장소>/dxf_to_usd.py --dxf my_factory.dxf --layers WALL COLUMN --unit mm
+```powershell
+.\python.bat <저장소>\dxf_to_usd.py --dxf my_factory.dxf --stats
+.\python.bat <저장소>\dxf_to_usd.py --dxf my_factory.dxf --layers WALL COLUMN --unit mm
 ```
 
 자주 쓰는 옵션
@@ -77,14 +87,14 @@ DWG 도면을 쓰려면 ODA File Converter가 추가로 필요합니다(ezdxf `o
 
 ### 2. 스캔 로그 → map2
 
-충분히 주행한 뒤 둘 중 하나로 내보냅니다.
+충분히 주행한 뒤 둘 중 하나로 내보냅니다. `output/`은 Git에 포함되지 않으므로, clone 직후에는 1단계(주행·스캔)를 먼저 해야 합니다.
 
 - **Isaac Sim 안에서**: `AMR Tools` 창 → `Export map2` (메모리의 스캔 데이터를 바로 사용)
 - **독립 실행**:
 
-```bash
-./python.bat <저장소>/scan_to_map2.py --report
-# 기본값: --scan output/scan_log.npz --usd output/simple_scene.usd --out output/scanned.map2
+```powershell
+.\python.bat <저장소>\scan_to_map2.py --report
+# 기본값: --scan output\scan_log.npz --usd output\simple_scene.usd --out output\scanned.map2
 ```
 
 `--report`는 선분별 길이·공분산·관측 시점 수·입사각을 출력하고, 관측이 부족한 선분(`<- weak`)을 표시합니다. 이 구간은 AMR 위치 추정이 불안정할 수 있으니 재주행하거나 리플렉터 등 물리적 참조물 보강을 검토하세요.
@@ -136,3 +146,24 @@ DWG 도면을 쓰려면 ODA File Converter가 추가로 필요합니다(ezdxf `o
 - script node 출력 폴더는 `dxf_to_usd.py`가 넘겨준 `--out-dir`이며, 씬을 직접 열었을 때는 열린 USD 파일이 있는 폴더입니다.
 - 로봇 prim 경로는 `/World/simplerobot`, LiDAR는 `/World/simplerobot/front_sensor/Lidar`로 고정되어 있습니다. 다른 로봇을 쓰면 `script_node/` 스크립트와 `--robot-path`를 함께 바꿔야 합니다.
 - 가상 스캔의 로봇 pose는 물리 엔진의 ground truth를 사용합니다 (SLAM 아님).
+
+## 문제 해결
+
+### `No module named 'torch'` / `No module named 'PIL'` 로 확장 로딩 실패
+
+같은 Isaac Sim을 Isaac Lab과 함께 쓰는 PC에서 생길 수 있습니다. Isaac Lab 설치 스크립트(conda 환경)가 Isaac Sim 내장 패키지 폴더의 torch, Pillow 등을 자기 버전으로 바꾸면서 Isaac Sim 쪽 사본을 지웁니다. Isaac Sim 4.5 기본 버전을 Isaac Sim 내장 Python에 다시 설치하면 됩니다 (conda를 끈 상태에서).
+
+```powershell
+cd C:\IsaacSim
+.\python.bat -m pip install --no-deps torch==2.5.1+cu118 torchvision==0.20.1+cu118 torchaudio==2.5.0+cu118 --index-url https://download.pytorch.org/whl/cu118
+.\python.bat -m pip install --no-deps sympy==1.13.1 gymnasium==0.29.1
+.\python.bat -m pip install --no-deps "extscache\omni.kit.pip_archive-0.0.0+d02c707b.wx64.cp310\pip_prebundle\pillow\pillow-11.0.0-cp310-cp310-win_amd64.whl"
+```
+
+이 위치(`kit\python\Lib\site-packages`)는 Isaac Lab conda 환경에서 보이지 않으므로 Isaac Lab에는 영향이 없습니다. 빠진 패키지가 더 있는지는 각 `pip_prebundle\packages_list.txt`와 실제 폴더를 비교해 확인할 수 있습니다. Isaac Sim에 패키지를 넣기 전에는 `.\python.bat -m pip show <패키지>`로 이미 있는지 먼저 확인하세요. pip은 같은 이름의 기존 버전을 그 위치에서 지우고 새로 설치합니다.
+
+Isaac Lab을 설치·실행할 때는 항상 `conda activate isaaclab`을 먼저 하세요. conda가 꺼진 상태로 `isaaclab.bat`을 실행하면 Isaac Sim 내장 Python에서 torch를 교체합니다.
+
+### AMR이 제자리 회전 끝에서 멈춤
+
+4륜 스키드 구동은 제자리 회전 마찰이 커서 작은 회전 명령으로는 돌지 않을 수 있습니다. 주행 노드는 멈춤을 감지하면 명령을 자동으로 올립니다. 콘솔에 `NAV: not turning even at max turn rate`가 보이면 `AMR Tools`에서 `max turn rate`를 올리세요.

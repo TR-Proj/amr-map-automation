@@ -564,6 +564,19 @@ def compose_scene(map_path, robot_path, scene_path,
         env = UsdGeom.Xform.Define(stage, env_path).GetPrim()
         notes.append(f"{env_path} 생성")
 
+    # 맵은 도면 좌표 그대로 놓아야 함. 로봇 씬에 남은 이동/회전이 있으면
+    # 벽·웨이포인트가 함께 밀려서, 만들어지는 map2 가 실제 공장 좌표와 어긋남.
+    env_xf = UsdGeom.Xformable(env)
+    if env_xf.GetOrderedXformOps():
+        moved = env_xf.ComputeLocalToWorldTransform(0).ExtractTranslation()
+        env_xf.ClearXformOpOrder()
+        for attr in env.GetAttributes():
+            if attr.GetName().startswith("xformOp:"):
+                env.RemoveProperty(attr.GetName())
+        if any(abs(v) > 1e-6 for v in moved):
+            notes.append(f"{env_path} 이동값 ({moved[0]:.2f}, {moved[1]:.2f}) "
+                         "제거 - 맵을 도면 좌표에 맞춤")
+
     rel = os.path.relpath(os.path.abspath(map_path),
                           os.path.dirname(os.path.abspath(scene_path)))
     rel = rel.replace(os.sep, "/")
