@@ -18,7 +18,7 @@ simple.dxf ──dxf_to_usd.py──▶ output/simple.usda (벽 + 웨이포인�
 
 ```powershell
 cd {PROJECT Dir}
-git clone https://github.com/andong-sunbi/amr-map-automation.git
+git clone https://github.com/TR-Proj/amr-map-automation
 
 cd {ISAAC-SIM Dir}
 .\python.bat -m pip install -r {PROJECT Dir}\amr-map-automation\requirements.txt
