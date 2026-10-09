@@ -1,0 +1,6 @@
+* text=auto
+*.dxf binary
+*.dwg binary
+*.usd binary
+*.usdc binary
+*.npz binary

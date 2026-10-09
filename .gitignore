@@ -1,0 +1,16 @@
+# 생성물 (dxf_to_usd.py / script node / scan_to_map2.py 가 다시 만듦)
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# 편집기·OS
+.vscode/
+.idea/
+.thumbs/
+Thumbs.db
+.DS_Store
+
+# 로컬 백업
+.backup_original/

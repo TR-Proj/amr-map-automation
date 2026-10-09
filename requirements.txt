@@ -1,0 +1,3 @@
+# Isaac Sim 내장 Python 에 설치: ./python.bat -m pip install -r requirements.txt
+# numpy 는 Isaac Sim 에 이미 들어 있으니 따로 설치하지 말 것 (내장 버전을 덮어써서 확장 로딩이 깨짐)
+ezdxf>=1.1
