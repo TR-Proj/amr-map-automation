@@ -14,6 +14,40 @@ simple.dxf ──dxf_to_usd.py──▶ output/simple.usda (벽 + 웨이포인�
                                         output/scanned.map2
 ```
 
+## 빠른 시작
+
+Windows PowerShell 기준입니다. 저장소가 Private이면 먼저 저장소 소유자에게 협업자(Collaborator) 초대를 받아 수락해야 clone할 수 있습니다.
+
+```powershell
+# 1. 저장소 받기 (원하는 폴더에서)
+cd C:\Users\<사용자>\Desktop
+git clone https://github.com/andong-sunbi/amr-map-automation.git
+
+# 2. Isaac Sim 내장 Python에 ezdxf 설치 (처음 한 번)
+cd C:\IsaacSim
+.\python.bat -m pip install -r C:\Users\<사용자>\Desktop\amr-map-automation\requirements.txt
+
+# 3. 도면 → 가상 공장 → 주행·스캔 (Isaac Sim이 열리고 AMR이 주행)
+.\python.bat C:\Users\<사용자>\Desktop\amr-map-automation\dxf_to_usd.py --dxf simple.dxf --robot mobile.usd
+
+# 4. 충분히 주행한 뒤 Isaac Sim을 닫고 map2 생성
+.\python.bat C:\Users\<사용자>\Desktop\amr-map-automation\scan_to_map2.py --report
+```
+
+결과는 `amr-map-automation\output\scanned.map2`에 생깁니다. Isaac Sim 설치 위치가 `C:\IsaacSim`이 아니면 2~4번의 `cd` 경로를 바꾸세요.
+
+### 최신 버전 받기
+
+clone한 폴더에서 `git pull`을 실행하면 바뀐 파일만 받습니다.
+
+```powershell
+cd C:\Users\<사용자>\Desktop\amr-map-automation
+git status    # "working tree clean" 이면 안전
+git pull
+```
+
+clone한 폴더에서 추적 중인 파일(`.py`, `mobile.usd`, `README.md` 등)을 고친 상태면 pull이 멈춥니다. 고친 내용이 필요 없으면 `git restore <파일>`로 되돌린 뒤 pull하세요. `output\` 생성물은 Git에서 제외되어 있어 pull과 충돌하지 않습니다.
+
 ## 폴더 구조
 
 | 경로 | 설명 |
